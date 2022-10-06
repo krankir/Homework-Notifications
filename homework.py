@@ -57,7 +57,7 @@ def get_api_answer(current_timestamp: int) -> dict:
     except requests.exceptions.ConnectionError:
         logger.error('Ошибка подключения')
     except requests.exceptions.RequestException as request_error:
-        logger.error(f'Ошибка запроса {request_error}')
+        logger.error(f'Ошибка запроса: {request_error}')
 
 
 def check_response(response: dict) -> dict:
