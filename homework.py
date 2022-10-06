@@ -2,7 +2,7 @@ import http
 import logging
 import os
 
-from telegram import Bot, TelegramError, Update
+from telegram import Bot, Update
 from telegram.ext import CallbackContext, CommandHandler, Updater
 import requests
 import time
@@ -27,7 +27,8 @@ logging.basicConfig(
     level=logging.DEBUG,
     filename='program.log',
     filemode='w',
-    format='%(asctime)s - %(levelname)s - %(message)s - %(name)s - %(lineno)s - %(filename')
+    format='%(asctime)s - %(levelname)s - %(message)s - %(name)s - %(lineno)s'
+           ' - %(filename')
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
 
@@ -38,7 +39,7 @@ def send_message(bot: Bot, message: str) -> None:
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.info(f'Сообщение успешно отправлено: {message}')
     except MessageError:
-        logger.error(f'сообщение не отправлено')
+        logger.error('сообщение не отправлено')
 
 
 def get_api_answer(current_timestamp: int) -> dict:
