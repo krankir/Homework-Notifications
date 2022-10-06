@@ -8,6 +8,8 @@ import requests
 import time
 from dotenv import load_dotenv
 
+from exceptions import MessageError, PageIsNotAvailable
+
 load_dotenv()
 PRACTICUM_TOKEN: str = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN: str = os.getenv('TELEGRAM_TOKEN')
@@ -15,7 +17,7 @@ TELEGRAM_CHAT_ID: int = os.getenv('TELEGRAM_CHAT_ID')
 RETRY_TIME: int = 600
 ENDPOINT: str = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS: dict = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
-HOMEWORK_STATUSES: dict = {
+HOMEWORK_VERDICT: dict = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
@@ -25,7 +27,7 @@ logging.basicConfig(
     level=logging.DEBUG,
     filename='program.log',
     filemode='w',
-    format='%(asctime)s - %(levelname)s - %(message)s - %(name)s')
+    format='%(asctime)s - %(levelname)s - %(message)s - %(name)s - %(lineno)s - %(filename')
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
 
@@ -34,9 +36,9 @@ def send_message(bot: Bot, message: str) -> None:
     """Формируем и отправляем сообщение в Telegram чат."""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
-        logger.info(f'Сообщение успешно отправленно: {message}')
-    except TelegramError as error:
-        logger.error(f'Сообщение не отправленно; {error}')
+        logger.info(f'Сообщение успешно отправлено: {message}')
+    except MessageError:
+        logger.error(f'сообщение не отправлено')
 
 
 def get_api_answer(current_timestamp: int) -> dict:
@@ -49,7 +51,7 @@ def get_api_answer(current_timestamp: int) -> dict:
                                 params=params)
         if response.status_code != http.HTTPStatus.OK:
             logger.error('Страница недоступна')
-            raise http.exceptions.HTTPError()
+            raise PageIsNotAvailable('Страница недоступна')
         return response.json()
     except requests.exceptions.ConnectionError:
         logger.error('Ошибка подключения')
@@ -79,9 +81,9 @@ def parse_status(homework):
         raise KeyError('Ключ homework_name отсутствует в homework')
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
-    if homework_status not in HOMEWORK_STATUSES.keys():
+    if homework_status not in HOMEWORK_VERDICT.keys():
         raise ValueError('Значение не соответствует справочнику статусов')
-    verdict = HOMEWORK_STATUSES[homework_status]
+    verdict = HOMEWORK_VERDICT[homework_status]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
@@ -116,10 +118,10 @@ def all_homeworks(update: Update, context: CallbackContext) -> None:
                 raise KeyError('Ключ homework_name отсутствует в homework')
             homework_name = homework.get('homework_name')
             homework_status = homework.get('status')
-            if homework_status not in HOMEWORK_STATUSES.keys():
+            if homework_status not in HOMEWORK_VERDICT.keys():
                 raise ValueError('Значение не соответствует'
                                  'справочнику статусов')
-            verdict = HOMEWORK_STATUSES[homework_status]
+            verdict = HOMEWORK_VERDICT[homework_status]
             rezult.append(f'--Работа "{homework_name}"'
                           f'- статус {verdict}\n\r\n\r')
     update.message.reply_text(f'{"".join(rezult)}')
