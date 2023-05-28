@@ -5,7 +5,8 @@
 ## Как установить и запустить приложение?
 
 1. Установите Python 3.8 или выше и pip. 
-2. Склонируйте репозиторий `https://github.com/ApriCotBrain/homework_bot.git`
+2. Склонируйте репозиторий `https://github.com/krancir/Homework-Notifications
+.git`
 3. Создайте виртуальное окружение `python -m venv env`.
 4. Активируйте виртуальное окружение: `source env/bin/activate` (Linux), `env\Scripts\activate` (Windows).
 5. Установите зависимости: `pip install -r requirements.txt`.
